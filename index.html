@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Om Engineering – Land Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--bg2:#171a23;--bg3:#1e2130;--bg4:#252840;--bg5:#2d3150;--acc:#E8A045;--acc2:#F0C070;--acc3:rgba(232,160,69,0.12);--txt:#EEF0F8;--txt2:#9CA3C0;--txt3:#5A6080;--bdr:rgba(255,255,255,0.07);--bdr2:rgba(255,255,255,0.13);--green:#4EC9A0;--blue:#5B9BD5;--purple:#A07DD8;--red:#E06060;--r:14px;--rs:9px;--font:'DM Sans',sans-serif}
+[data-theme=light]{--bg:#F0F2F8;--bg2:#FFFFFF;--bg3:#E8EAF4;--bg4:#DDE0F0;--bg5:#D0D4EC;--txt:#1A1D2E;--txt2:#4A4F70;--txt3:#9097C0;--bdr:rgba(0,0,0,0.07);--bdr2:rgba(0,0,0,0.13)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:var(--font);font-size:14px;overscroll-behavior:none}
+body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height:100dvh}
+
+/* HEADER */
+.hdr{background:var(--bg2);border-bottom:1px solid var(--bdr);padding:11px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:200}
+.logo{width:36px;height:36px;background:var(--acc);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo svg{width:20px;height:20px}
+.hdr-txt{flex:1;min-width:0}
+.brand{font-family:'DM Serif Display',serif;font-size:14px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.brand b{color:var(--acc)}
+.sub{font-size:9.5px;color:var(--txt3);font-weight:500;letter-spacing:.07em;text-transform:uppercase;margin-top:1px}
+.hdr-btn{background:var(--bg3);border:1px solid var(--bdr2);color:var(--txt2);width:34px;height:34px;border-radius:var(--rs);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;transition:background .15s}
+.hdr-btn:hover{background:var(--bg4)}
+
+/* BOTTOM NAV */
+.bnav{display:flex;background:var(--bg2);border-top:1px solid var(--bdr);position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;z-index:200}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 4px 10px;border:none;background:none;cursor:pointer;color:var(--txt3);font-family:var(--font);transition:color .15s}
+.bnav-btn .ic{font-size:18px;line-height:1}
+.bnav-btn .lbl{font-size:9px;font-weight:500;letter-spacing:.04em}
+.bnav-btn.active{color:var(--acc)}
+.bnav-btn.active .lbl{font-weight:600}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:12px 12px 80px;-webkit-overflow-scrolling:touch}
+.screen{display:none;animation:fi .18s ease}
+.screen.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:13px;margin-bottom:10px}
+.card-title{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--txt3);margin-bottom:10px}
+
+/* FIELDS */
+.field{margin-bottom:9px}.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:11px;color:var(--txt3);margin-bottom:4px;font-weight:500}
+.inp{width:100%;height:40px;background:var(--bg3);border:1px solid var(--bdr2);color:var(--txt);border-radius:var(--rs);padding:0 10px;font-family:var(--font);font-size:14px;transition:border-color .15s}
+.inp:focus{outline:none;border-color:var(--acc)}
+.inp::placeholder{color:var(--txt3)}
+select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235A6080'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+select.inp option{background:var(--bg2)}
+
+/* MODE PILLS */
+.pills{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}
+.pill{padding:6px 12px;border-radius:20px;border:1px solid var(--bdr2);background:var(--bg3);color:var(--txt2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
+.pill.active{background:var(--acc);color:#0f1117;border-color:var(--acc);font-weight:600}
+
+/* MULTI INPUTS */
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.mini-f{display:flex;flex-direction:column;gap:3px}
+.mini-f label{font-size:10px;color:var(--txt3);font-weight:600;letter-spacing:.05em;text-align:center}
+.mini-f .inp{text-align:center;padding:0 4px;font-size:13px}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:7px;margin:10px 0}
+.btn{flex:1;height:42px;border-radius:var(--rs);border:none;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.03em;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-p{background:var(--acc);color:#0f1117}.btn-p:hover{background:var(--acc2)}.btn-p:active{transform:scale(.97)}
+.btn-g{background:var(--bg3);color:var(--txt2);border:1px solid var(--bdr2)}.btn-g:hover{background:var(--bg4)}
+.btn-sm{flex:none;padding:0 14px}
+
+/* RESULTS */
+.rgroup-title{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--txt3);padding:10px 2px 5px}
+.ri{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rs);padding:9px 12px;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;transition:border-color .15s}
+.ri:hover{border-color:var(--bdr2)}
+.ri.feat{border-color:var(--acc);background:var(--acc3)}
+.ri.feat2{border-color:var(--blue);background:rgba(91,155,213,.08)}
+.ri .rl{font-size:12px;color:var(--txt2);font-weight:500;flex-shrink:0}
+.ri .rv{font-size:13px;font-weight:600;color:var(--txt);text-align:right}
+.ri.feat .rv{color:var(--acc)}
+.ri.feat2 .rv{color:var(--blue)}
+.badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--acc);color:#0f1117;letter-spacing:.06em;margin-left:5px;vertical-align:middle}
+.badge.blue{background:var(--blue);color:#fff}
+
+/* SHAPE CARDS */
+.shape-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.shape-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 6px;text-align:center;cursor:pointer;transition:all .15s}
+.shape-card.active{border-color:var(--acc);background:var(--acc3)}
+.shape-card svg{width:36px;height:36px;margin:0 auto 5px;display:block}
+.shape-card .sn{font-size:11px;font-weight:500;color:var(--txt2)}
+.shape-card.active .sn{color:var(--acc)}
+
+/* TRIANGLE INPUTS */
+.tri-diagram{background:var(--bg3);border-radius:var(--rs);padding:12px;text-align:center;margin-bottom:10px}
+.tri-diagram svg{max-width:200px;width:100%}
+
+/* SCIENTIFIC CALCULATOR */
+.calc-display{background:var(--bg);border:1px solid var(--bdr2);border-radius:var(--rs);padding:12px 14px;margin-bottom:8px;min-height:76px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end}
+.calc-expr{font-size:12px;color:var(--txt3);min-height:18px;word-break:break-all;text-align:right}
+.calc-val{font-size:28px;font-weight:300;color:var(--txt);word-break:break-all;text-align:right;line-height:1.2;margin-top:2px}
+.calc-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.cb{height:52px;border-radius:var(--rs);border:none;font-family:var(--font);font-size:15px;font-weight:500;cursor:pointer;transition:all .12s;color:var(--txt2);background:var(--bg3)}
+.cb:active{transform:scale(.93)}
+.cb.op{background:var(--bg4);color:var(--acc);font-weight:600}
+.cb.fn{background:var(--bg3);color:var(--blue);font-size:12px;font-weight:600}
+.cb.eq{background:var(--acc);color:#0f1117;font-size:18px;font-weight:700}
+.cb.num{background:var(--bg3);color:var(--txt)}
+.cb.zero{grid-column:span 2}
+.cb.clr{background:var(--bg4);color:var(--red)}
+.cb.ac{background:var(--bg4);color:var(--red);font-weight:700}
+.cb.mem{background:var(--bg3);color:var(--purple);font-size:12px}
+
+/* HISTORY */
+.hist-item{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;margin-bottom:6px}
+.hist-in{font-size:12px;color:var(--txt2);margin-bottom:3px}
+.hist-rapd{font-size:13px;font-weight:600;color:var(--acc)}
+.hist-bkd{font-size:11px;color:var(--blue);margin-top:2px}
+.hist-meta{font-size:10px;color:var(--txt3);margin-top:3px;display:flex;justify-content:space-between}
+.empty{text-align:center;padding:32px 16px;color:var(--txt3);font-size:13px;line-height:1.8}
+
+/* ABOUT */
+.ref-table{width:100%;font-size:12px;border-collapse:collapse}
+.ref-table td{padding:3px 0;vertical-align:top}
+.ref-table td:last-child{text-align:right;color:var(--txt)}
+.ref-table td:first-child{color:var(--txt2)}
+
+/* TOAST */
+.toast{position:fixed;bottom:68px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--bg4);color:var(--txt);border:1px solid var(--bdr2);border-radius:20px;padding:8px 18px;font-size:12px;font-weight:500;opacity:0;transition:all .22s;z-index:999;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* INFO BOX */
+.info-box{background:var(--bg3);border-radius:var(--rs);padding:9px 12px;font-size:11px;color:var(--txt3);margin-top:6px;line-height:1.7}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="#0f1117" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3 21h18v-2H3v2zm0-4h18v-2H3v2zM3 9l9-5 9 5v2H3V9zm2 2h14v-1l-7-3.9L5 10v1z"/>
+    </svg>
+  </div>
+  <div class="hdr-txt">
+    <div class="brand"><b>Om</b> Engineering Solutions Pvt. Ltd.</div>
+    <div class="sub">Land &amp; Measurement Calculator</div>
+  </div>
+  <button class="hdr-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
+</header>
+
+<div class="content">
+
+<!-- ══════════════ AREA CONVERTER SCREEN ══════════════ -->
+<div id="sc-convert" class="screen active">
+  <div class="card-title" style="margin-bottom:8px;padding-left:2px">Input Mode</div>
+  <div class="pills">
+    <span class="pill active" id="pm-single" onclick="setMode('single')">Single Unit</span>
+    <span class="pill" id="pm-rapd" onclick="setMode('rapd')">R – A – D – P</span>
+    <span class="pill" id="pm-bkd" onclick="setMode('bkd')">B – K – D</span>
+  </div>
+
+  <div id="inp-single" class="card">
+    <div class="field"><label>Area Value</label><input class="inp" type="number" id="sv" placeholder="Enter value…" min="0" step="any" oninput="autoConv()"></div>
+    <div class="field"><label>Unit</label>
+      <select class="inp" id="su" onchange="autoConv()">
+        <optgroup label="── Hilly (Ropani) ──">
+          <option value="ropani">Ropani</option>
+          <option value="aana">Aana</option>
+          <option value="dam">Dam</option>
+          <option value="paisa">Paisa</option>
+        </optgroup>
+        <optgroup label="── Terai (Bigha) ──">
+          <option value="bigha">Bigha</option>
+          <option value="kattha">Kattha</option>
+          <option value="dhur">Dhur</option>
+        </optgroup>
+        <optgroup label="── International ──">
+          <option value="sqft" selected>Sq. Feet (ft²)</option>
+          <option value="sqm">Sq. Meter (m²)</option>
+          <option value="acre">Acre</option>
+          <option value="hectare">Hectare</option>
+          <option value="sqkm">Sq. KM (km²)</option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
+
+  <div id="inp-rapd" class="card" style="display:none">
+    <div class="card-title">Ropani – Aana – Dam – Paisa</div>
+    <div class="grid4">
+      <div class="mini-f"><label>ROPANI</label><input class="inp" type="number" id="rr" min="0" step="1" placeholder="0" oninput="autoConv()"></div>
+      <div class="mini-f"><label>AANA</label><input class="inp" type="number" id="ra" min="0" max="15" step="1" placeholder="0" oninput="autoConv()"></div>
+      <div class="mini-f"><label>DAM</label><input class="inp" type="number" id="rd" min="0" max="3" step="1" placeholder="0" oninput="autoConv()"></div>
+      <div class="mini-f"><label>PAISA</label><input class="inp" type="number" id="rp" min="0" max="3" step="1" placeholder="0" oninput="autoConv()"></div>
+    </div>
+    <div class="info-box">1 Ropani = 16 Aana = 64 Dam = 256 Paisa = 5,476 sq.ft</div>
+  </div>
+
+  <div id="inp-bkd" class="card" style="display:none">
+    <div class="card-title">Bigha – Kattha – Dhur</div>
+    <div class="grid3">
+      <div class="mini-f"><label>BIGHA</label><input class="inp" type="number" id="bb" min="0" step="1" placeholder="0" oninput="autoConv()"></div>
+      <div class="mini-f"><label>KATTHA</label><input class="inp" type="number" id="bk" min="0" max="19" step="1" placeholder="0" oninput="autoConv()"></div>
+      <div class="mini-f"><label>DHUR</label><input class="inp" type="number" id="bd" min="0" step="any" placeholder="0" oninput="autoConv()"></div>
+    </div>
+    <div class="info-box">1 Bigha = 20 Kattha = 400 Dhur = 72,900 sq.ft</div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-p" onclick="doConv()">Convert All</button>
+    <button class="btn btn-g btn-sm" onclick="saveHist()" id="savebtn" style="display:none">💾 Save</button>
+    <button class="btn btn-g btn-sm" onclick="clearConv()">✕ Clear</button>
+  </div>
+  <div id="conv-results"></div>
+</div>
+
+<!-- ══════════════ AREA CALCULATOR SCREEN ══════════════ -->
+<div id="sc-calc" class="screen">
+  <div class="card-title" style="padding-left:2px;margin-bottom:8px">Shape</div>
+  <div class="shape-grid" id="shapeGrid">
+    <div class="shape-card active" onclick="setShape('tri3')" id="sh-tri3">
+      <svg viewBox="0 0 40 36"><polygon points="20,3 37,33 3,33" fill="none" stroke="var(--acc)" stroke-width="2"/><text x="20" y="26" text-anchor="middle" font-size="8" fill="var(--txt3)">a,b,c</text></svg>
+      <div class="sn">Triangle<br><span style="font-size:9px;color:var(--txt3)">3 sides (Heron)</span></div>
+    </div>
+    <div class="shape-card" onclick="setShape('tri2')" id="sh-tri2">
+      <svg viewBox="0 0 40 36"><polygon points="4,33 36,33 36,4" fill="none" stroke="var(--blue)" stroke-width="2"/><text x="22" y="28" text-anchor="middle" font-size="8" fill="var(--txt3)">b×h</text></svg>
+      <div class="sn">Triangle<br><span style="font-size:9px;color:var(--txt3)">Base × Height</span></div>
+    </div>
+    <div class="shape-card" onclick="setShape('rect')" id="sh-rect">
+      <svg viewBox="0 0 40 36"><rect x="4" y="8" width="32" height="20" fill="none" stroke="var(--green)" stroke-width="2"/></svg>
+      <div class="sn">Rectangle</div>
+    </div>
+    <div class="shape-card" onclick="setShape('square')" id="sh-square">
+      <svg viewBox="0 0 40 36"><rect x="6" y="4" width="28" height="28" fill="none" stroke="var(--purple)" stroke-width="2"/></svg>
+      <div class="sn">Square</div>
+    </div>
+    <div class="shape-card" onclick="setShape('circle')" id="sh-circle">
+      <svg viewBox="0 0 40 36"><circle cx="20" cy="18" r="14" fill="none" stroke="var(--red)" stroke-width="2"/></svg>
+      <div class="sn">Circle</div>
+    </div>
+    <div class="shape-card" onclick="setShape('trap')" id="sh-trap">
+      <svg viewBox="0 0 40 36"><polygon points="8,30 32,30 28,6 12,6" fill="none" stroke="var(--acc2)" stroke-width="2"/></svg>
+      <div class="sn">Trapezium</div>
+    </div>
+    <div class="shape-card" onclick="setShape('rhombus')" id="sh-rhombus">
+      <svg viewBox="0 0 40 36"><polygon points="20,3 37,18 20,33 3,18" fill="none" stroke="var(--blue)" stroke-width="2"/></svg>
+      <div class="sn">Rhombus</div>
+    </div>
+    <div class="shape-card" onclick="setShape('ellipse')" id="sh-ellipse">
+      <svg viewBox="0 0 40 36"><ellipse cx="20" cy="18" rx="17" ry="11" fill="none" stroke="var(--green)" stroke-width="2"/></svg>
+      <div class="sn">Ellipse</div>
+    </div>
+    <div class="shape-card" onclick="setShape('poly')" id="sh-poly">
+      <svg viewBox="0 0 40 36"><polygon points="20,3 36,13 30,31 10,31 4,13" fill="none" stroke="var(--purple)" stroke-width="2"/></svg>
+      <div class="sn">Polygon<br><span style="font-size:9px;color:var(--txt3)">n sides</span></div>
+    </div>
+  </div>
+
+  <div class="card" id="shape-inputs"></div>
+
+  <div class="field" style="margin-bottom:10px">
+    <label>Measurement Unit</label>
+    <select class="inp" id="shape-unit">
+      <option value="foot">Feet (ft)</option>
+      <option value="meter">Meter (m)</option>
+      <option value="inch">Inch (in)</option>
+      <option value="yard">Yard (yd)</option>
+      <option value="cm">Centimeter (cm)</option>
+    </select>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-p" onclick="calcShape()">Calculate Area</button>
+    <button class="btn btn-g btn-sm" onclick="clearShape()">✕ Clear</button>
+  </div>
+  <div id="shape-results"></div>
+</div>
+
+<!-- ══════════════ FIELD SURVEY SCREEN ══════════════ -->
+<div id="sc-field" class="screen">
+
+  <!-- Info banner -->
+  <div class="info-box" style="margin-bottom:10px;font-size:12px;line-height:1.7;color:var(--txt2)">
+    🗺️ <b>Field Triangulation Method:</b> Divide your land into triangles (and other shapes). Enter each piece — the app sums all areas and converts to all units.
+  </div>
+
+  <!-- Unit selector -->
+  <div class="field" style="margin-bottom:10px">
+    <label>Field Measurement Unit (all pieces use same unit)</label>
+    <select class="inp" id="field-unit">
+      <option value="foot">Feet (ft)</option>
+      <option value="meter">Meter (m)</option>
+      <option value="inch">Inch (in)</option>
+      <option value="yard">Yard (yd)</option>
+      <option value="cm">Centimeter (cm)</option>
+    </select>
+  </div>
+
+  <!-- Add piece card -->
+  <div class="card" id="field-add-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="card-title" style="margin:0" id="field-piece-label">Add Piece</div>
+      <div style="display:flex;gap:5px">
+        <span class="pill active" id="fp-tri3" onclick="setFieldShape('tri3')" style="padding:4px 10px;font-size:11px">▲ 3 Sides</span>
+        <span class="pill" id="fp-tri2" onclick="setFieldShape('tri2')" style="padding:4px 10px;font-size:11px">▲ B×H</span>
+        <span class="pill" id="fp-rect" onclick="setFieldShape('rect')" style="padding:4px 10px;font-size:11px">▭ Rect</span>
+        <span class="pill" id="fp-trap" onclick="setFieldShape('trap')" style="padding:4px 10px;font-size:11px">⬠ Trap</span>
+      </div>
+    </div>
+
+    <!-- tri3 inputs -->
+    <div id="fp-inp-tri3">
+      <div class="grid3">
+        <div class="mini-f"><label>SIDE a</label><input class="inp" type="number" id="f-s1" min="0" step="any" placeholder="0"></div>
+        <div class="mini-f"><label>SIDE b</label><input class="inp" type="number" id="f-s2" min="0" step="any" placeholder="0"></div>
+        <div class="mini-f"><label>SIDE c</label><input class="inp" type="number" id="f-s3" min="0" step="any" placeholder="0"></div>
+      </div>
+      <div class="info-box" style="margin-top:7px">Heron's formula: A = √(s(s-a)(s-b)(s-c))</div>
+    </div>
+    <!-- tri2 inputs -->
+    <div id="fp-inp-tri2" style="display:none">
+      <div class="grid2">
+        <div class="mini-f"><label>BASE</label><input class="inp" type="number" id="f-tb" min="0" step="any" placeholder="0"></div>
+        <div class="mini-f"><label>HEIGHT</label><input class="inp" type="number" id="f-th" min="0" step="any" placeholder="0"></div>
+      </div>
+    </div>
+    <!-- rect inputs -->
+    <div id="fp-inp-rect" style="display:none">
+      <div class="grid2">
+        <div class="mini-f"><label>LENGTH</label><input class="inp" type="number" id="f-rl" min="0" step="any" placeholder="0"></div>
+        <div class="mini-f"><label>WIDTH</label><input class="inp" type="number" id="f-rw" min="0" step="any" placeholder="0"></div>
+      </div>
+    </div>
+    <!-- trap inputs -->
+    <div id="fp-inp-trap" style="display:none">
+      <div class="grid3">
+        <div class="mini-f"><label>SIDE a</label><input class="inp" type="number" id="f-ta" min="0" step="any" placeholder="0"></div>
+        <div class="mini-f"><label>SIDE b</label><input class="inp" type="number" id="f-tb2" min="0" step="any" placeholder="0"></div>
+        <div class="mini-f"><label>HEIGHT</label><input class="inp" type="number" id="f-th2" min="0" step="any" placeholder="0"></div>
+      </div>
+    </div>
+
+    <!-- Optional label -->
+    <div class="field" style="margin-top:9px;margin-bottom:0">
+      <label>Label (optional)</label>
+      <input class="inp" type="text" id="f-label" placeholder="e.g. T1, North triangle…" maxlength="30">
+    </div>
+
+    <div class="btn-row" style="margin-bottom:0;margin-top:10px">
+      <button class="btn btn-p" onclick="addFieldPiece()">＋ Add to Survey</button>
+      <button class="btn btn-g btn-sm" onclick="clearFieldInputs()">✕</button>
+    </div>
+  </div>
+
+  <!-- Pieces list -->
+  <div id="field-pieces-wrap" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div class="card-title" style="margin:0">Survey Pieces <span id="field-count" style="color:var(--acc)"></span></div>
+      <button class="btn btn-g" style="height:28px;font-size:11px;flex:none;padding:0 10px" onclick="clearAllPieces()">Clear All</button>
+    </div>
+    <div id="field-pieces-list"></div>
+  </div>
+
+  <!-- Total result -->
+  <div id="field-total-wrap" style="display:none">
+    <div class="card" style="border-color:var(--acc);background:var(--acc3);margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--acc);margin-bottom:6px">📊 Total Survey Area</div>
+      <div style="font-size:24px;font-weight:700;color:var(--acc)" id="field-total-raw"></div>
+      <div style="font-size:12px;color:var(--txt3);margin-top:3px" id="field-total-sqft"></div>
+    </div>
+    <div id="field-total-results"></div>
+    <div class="btn-row">
+      <button class="btn btn-g" onclick="saveFieldToHist()">💾 Save to History</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════ LENGTH SCREEN ══════════════ -->
+<div id="sc-length" class="screen">
+  <div class="card">
+    <div class="field"><label>Length Value</label><input class="inp" type="number" id="lv" placeholder="Enter value…" min="0" step="any" oninput="convLen()"></div>
+    <div class="field"><label>Unit</label>
+      <select class="inp" id="lu" onchange="convLen()">
+        <optgroup label="── Nepali ──">
+          <option value="haath">Haath (हात) = 18 in</option>
+          <option value="bitta">Bitta (बित्ता) = 9 in</option>
+          <option value="dhanusha">Dhanusha (धनुषा) = 6 ft</option>
+          <option value="kos">Kos (कोस) ≈ 2 miles</option>
+        </optgroup>
+        <optgroup label="── Imperial ──">
+          <option value="inch">Inch</option>
+          <option value="foot" selected>Foot</option>
+          <option value="yard">Yard</option>
+          <option value="chain">Chain (Gunter) = 66 ft</option>
+          <option value="mile">Mile</option>
+        </optgroup>
+        <optgroup label="── Metric ──">
+          <option value="mm">Millimeter</option>
+          <option value="cm">Centimeter</option>
+          <option value="meter">Meter</option>
+          <option value="km">Kilometer</option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-p" onclick="convLen()">Convert</button>
+    <button class="btn btn-g btn-sm" onclick="clrLen()">✕ Clear</button>
+  </div>
+  <div id="len-results"></div>
+</div>
+
+<!-- ══════════════ CALCULATOR SCREEN ══════════════ -->
+<div id="sc-sci" class="screen">
+  <div class="pills" style="margin-bottom:10px">
+    <span class="pill active" id="cm-sci" onclick="setCalcMode('sci')">Scientific</span>
+    <span class="pill" id="cm-simple" onclick="setCalcMode('simple')">Simple</span>
+  </div>
+  <div class="calc-display">
+    <div class="calc-expr" id="c-expr"></div>
+    <div class="calc-val" id="c-val">0</div>
+  </div>
+
+  <!-- Scientific layout -->
+  <div id="calc-sci-btns" class="calc-btns">
+    <button class="cb fn" onclick="ci('sin(')">sin</button>
+    <button class="cb fn" onclick="ci('cos(')">cos</button>
+    <button class="cb fn" onclick="ci('tan(')">tan</button>
+    <button class="cb fn" onclick="ci('log(')">log</button>
+    <button class="cb fn" onclick="ci('ln(')">ln</button>
+    <button class="cb fn" onclick="ci('√(')">√</button>
+    <button class="cb fn" onclick="ci('^')">xʸ</button>
+    <button class="cb fn" onclick="ci('π')">π</button>
+    <button class="cb fn" onclick="ci('e')">e</button>
+    <button class="cb fn" onclick="ci('('))">(</button>
+    <button class="cb fn" onclick="ci(')')">)</button>
+    <button class="cb fn" onclick="sqrtCurrent()">x²</button>
+    <button class="cb ac" onclick="cAC()">AC</button>
+    <button class="cb clr" onclick="cDel()">⌫</button>
+    <button class="cb op" onclick="ci('%')">%</button>
+    <button class="cb op" onclick="ci('/')">÷</button>
+    <button class="cb num" onclick="ci('7')">7</button>
+    <button class="cb num" onclick="ci('8')">8</button>
+    <button class="cb num" onclick="ci('9')">9</button>
+    <button class="cb op" onclick="ci('×')">×</button>
+    <button class="cb num" onclick="ci('4')">4</button>
+    <button class="cb num" onclick="ci('5')">5</button>
+    <button class="cb num" onclick="ci('6')">6</button>
+    <button class="cb op" onclick="ci('-')">−</button>
+    <button class="cb num" onclick="ci('1')">1</button>
+    <button class="cb num" onclick="ci('2')">2</button>
+    <button class="cb num" onclick="ci('3')">3</button>
+    <button class="cb op" onclick="ci('+')">+</button>
+    <button class="cb num zero" onclick="ci('0')">0</button>
+    <button class="cb num" onclick="ci('.')">.</button>
+    <button class="cb eq" onclick="cEval()">=</button>
+  </div>
+
+  <!-- Simple layout -->
+  <div id="calc-simple-btns" class="calc-btns" style="display:none">
+    <button class="cb ac" onclick="cAC()">AC</button>
+    <button class="cb clr" onclick="cDel()">⌫</button>
+    <button class="cb op" onclick="ci('%')">%</button>
+    <button class="cb op" onclick="ci('/')">÷</button>
+    <button class="cb num" onclick="ci('7')">7</button>
+    <button class="cb num" onclick="ci('8')">8</button>
+    <button class="cb num" onclick="ci('9')">9</button>
+    <button class="cb op" onclick="ci('×')">×</button>
+    <button class="cb num" onclick="ci('4')">4</button>
+    <button class="cb num" onclick="ci('5')">5</button>
+    <button class="cb num" onclick="ci('6')">6</button>
+    <button class="cb op" onclick="ci('-')">−</button>
+    <button class="cb num" onclick="ci('1')">1</button>
+    <button class="cb num" onclick="ci('2')">2</button>
+    <button class="cb num" onclick="ci('3')">3</button>
+    <button class="cb op" onclick="ci('+')">+</button>
+    <button class="cb num zero" onclick="ci('0')">0</button>
+    <button class="cb num" onclick="ci('.')">.</button>
+    <button class="cb eq" onclick="cEval()">=</button>
+  </div>
+</div>
+
+<!-- ══════════════ HISTORY SCREEN ══════════════ -->
+<div id="sc-hist" class="screen">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div style="font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--txt3)">Saved Calculations</div>
+    <button class="btn btn-g" style="height:30px;font-size:11px;flex:none;padding:0 12px" onclick="clearHist()">Clear All</button>
+  </div>
+  <div id="hist-list"><div class="empty">No saved calculations yet.<br>Convert an area and tap 💾 Save.</div></div>
+</div>
+
+</div><!-- /content -->
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <button class="bnav-btn active" onclick="showSc('convert',this)"><span class="ic">⇄</span><span class="lbl">Convert</span></button>
+  <button class="bnav-btn" onclick="showSc('calc',this)"><span class="ic">📐</span><span class="lbl">Shapes</span></button>
+  <button class="bnav-btn" onclick="showSc('field',this)"><span class="ic">🗺️</span><span class="lbl">Survey</span></button>
+  <button class="bnav-btn" onclick="showSc('length',this)"><span class="ic">📏</span><span class="lbl">Length</span></button>
+  <button class="bnav-btn" onclick="showSc('sci',this)"><span class="ic">🔢</span><span class="lbl">Calc</span></button>
+  <button class="bnav-btn" onclick="showSc('hist',this)"><span class="ic">🕘</span><span class="lbl">History</span></button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════ CONSTANTS ═══════
+const SF={ropani:5476,aana:342.25,dam:85.5625,paisa:21.390625,bigha:72900,kattha:3645,dhur:182.25,sqft:1,sqm:10.76391,acre:43560,hectare:107639.1,sqkm:10763910.4};
+const LM={haath:.4572,bitta:.2286,dhanusha:1.8288,kos:3218.688,inch:.0254,foot:.3048,yard:.9144,chain:20.1168,mile:1609.344,mm:.001,cm:.01,meter:1,km:1000};
+const SHAPE_UNIT_TO_SQFT={foot:1,meter:10.76391,inch:1/144,yard:9,cm:10.76391/10000};
+
+// ═══════ THEME ═══════
+let dark=localStorage.getItem('oes_theme')!=='light';
+function applyTheme(){document.documentElement.setAttribute('data-theme',dark?'dark':'light');document.getElementById('themeBtn').textContent=dark?'🌙':'☀️';}
+function toggleTheme(){dark=!dark;localStorage.setItem('oes_theme',dark?'dark':'light');applyTheme();}
+applyTheme();
+
+// ═══════ NAVIGATION ═══════
+function showSc(name,btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sc-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(name==='hist')renderHist();
+}
+
+// ═══════ NUMBER FORMAT ═══════
+function fmt(n,d=4){if(n===0)return'0';if(Math.abs(n)<.000001)return n.toExponential(3);return parseFloat(n.toFixed(d)).toLocaleString('en-IN',{maximumFractionDigits:d});}
+
+// ═══════ CONVERT SCREEN ═══════
+let cMode='single';
+function setMode(m){
+  cMode=m;
+  ['single','rapd','bkd'].forEach(x=>{
+    document.getElementById('pm-'+x).classList.toggle('active',x===m);
+    document.getElementById('inp-'+x).style.display=x===m?'block':'none';
+  });
+  document.getElementById('conv-results').innerHTML='';
+  document.getElementById('savebtn').style.display='none';
+  window._sf=null;
+}
+
+function getSF(){
+  if(cMode==='single'){
+    const v=parseFloat(document.getElementById('sv').value),u=document.getElementById('su').value;
+    if(isNaN(v)||v<0)return null;
+    return v*SF[u];
+  }
+  if(cMode==='rapd'){
+    const r=+document.getElementById('rr').value||0,a=+document.getElementById('ra').value||0,d=+document.getElementById('rd').value||0,p=+document.getElementById('rp').value||0;
+    if(r+a+d+p===0)return null;
+    return r*5476+a*342.25+d*85.5625+p*21.390625;
+  }
+  if(cMode==='bkd'){
+    const b=+document.getElementById('bb').value||0,k=+document.getElementById('bk').value||0,d=+document.getElementById('bd').value||0;
+    if(b+k+d===0)return null;
+    return b*72900+k*3645+d*182.25;
+  }
+  return null;
+}
+
+function toRAPD(sf){
+  let r=Math.floor(sf/5476),rem=sf%5476;
+  let a=Math.floor(rem/342.25);rem=rem%342.25;
+  let d=Math.floor(rem/85.5625);rem=rem%85.5625;
+  let p=parseFloat((rem/21.390625).toFixed(2));
+  if(p>=4){d++;p=0;}if(d>=4){a++;d=0;}if(a>=16){r++;a=0;}
+  return{r,a,d,p};
+}
+function toBKD(sf){
+  let b=Math.floor(sf/72900),rem=sf%72900;
+  let k=Math.floor(rem/3645);rem=rem%3645;
+  let dh=parseFloat((rem/182.25).toFixed(2));
+  if(dh>=20){k++;dh=0;}if(k>=20){b++;k=0;}
+  return{b,k,dh};
+}
+
+function renderResults(sf){
+  const ra=toRAPD(sf),bk=toBKD(sf);
+  window._sf=sf;window._ra=ra;window._bk=bk;
+  let h='<div>';
+  h+=`<div class="rgroup-title">🏔 Hilly System (Ropani)</div>`;
+  h+=ri(true,false,'R – A – D – P <span class="badge">R-A-D-P</span>',`<b>${ra.r}</b><span style="color:var(--txt3);font-size:11px"> Ro </span><b>${ra.a}</b><span style="color:var(--txt3);font-size:11px"> Aa </span><b>${ra.d}</b><span style="color:var(--txt3);font-size:11px"> Da </span><b>${ra.p}</b><span style="color:var(--txt3);font-size:11px"> Pa</span>`,`${ra.r}Ro-${ra.a}Aa-${ra.d}Da-${ra.p}Pa`);
+  h+=ri(false,false,'Ropani',fmt(sf/5476,5)+' Ro',fmt(sf/5476,5)+' Ropani');
+  h+=ri(false,false,'Aana',fmt(sf/342.25,4)+' Aa',fmt(sf/342.25,4)+' Aana');
+  h+=ri(false,false,'Dam',fmt(sf/85.5625,4)+' Da',fmt(sf/85.5625,4)+' Dam');
+  h+=ri(false,false,'Paisa',fmt(sf/21.390625,3)+' Pa',fmt(sf/21.390625,3)+' Paisa');
+  h+=`<div class="rgroup-title">🌾 Terai System (Bigha)</div>`;
+  h+=ri(false,true,'B – K – D <span class="badge blue">B-K-D</span>',`<b>${bk.b}</b><span style="color:var(--txt3);font-size:11px"> Bi </span><b>${bk.k}</b><span style="color:var(--txt3);font-size:11px"> Ka </span><b>${bk.dh}</b><span style="color:var(--txt3);font-size:11px"> Dh</span>`,`${bk.b}Bi-${bk.k}Ka-${bk.dh}Dh`);
+  h+=ri(false,false,'Bigha',fmt(sf/72900,5)+' Bi',fmt(sf/72900,5)+' Bigha');
+  h+=ri(false,false,'Kattha',fmt(sf/3645,4)+' Ka',fmt(sf/3645,4)+' Kattha');
+  h+=ri(false,false,'Dhur',fmt(sf/182.25,3)+' Dh',fmt(sf/182.25,3)+' Dhur');
+  h+=`<div class="rgroup-title">🌍 International</div>`;
+  h+=ri(false,false,'Sq. Feet (ft²)',fmt(sf,2)+' ft²',fmt(sf,2)+' sqft');
+  h+=ri(false,false,'Sq. Meter (m²)',fmt(sf/10.76391,2)+' m²',fmt(sf/10.76391,2)+' sqm');
+  h+=ri(false,false,'Acre',fmt(sf/43560,6)+' ac',fmt(sf/43560,6)+' acre');
+  h+=ri(false,false,'Hectare',fmt(sf/107639.1,6)+' ha',fmt(sf/107639.1,6)+' ha');
+  h+=ri(false,false,'Sq. KM',fmt(sf/10763910.4,8)+' km²',fmt(sf/10763910.4,8)+' km²');
+  h+='</div>';
+  document.getElementById('conv-results').innerHTML=h;
+  document.getElementById('savebtn').style.display='';
+}
+
+function ri(feat,feat2,label,val,cpv){
+  const c=feat?'ri feat':feat2?'ri feat2':'ri';
+  return`<div class="${c}" onclick="cpTxt('${cpv||val}')"><div class="rl">${label}</div><div class="rv">${val}</div></div>`;
+}
+function cpTxt(t){navigator.clipboard&&navigator.clipboard.writeText(t.replace(/<[^>]*>/g,''));showToast('Copied!');}
+function doConv(){const sf=getSF();if(sf===null){showToast('Enter a value first');return;}renderResults(sf);}
+function autoConv(){const sf=getSF();if(sf===null){document.getElementById('conv-results').innerHTML='';document.getElementById('savebtn').style.display='none';return;}renderResults(sf);}
+function clearConv(){
+  ['sv','rr','ra','rd','rp','bb','bk','bd'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('conv-results').innerHTML='';
+  document.getElementById('savebtn').style.display='none';
+  window._sf=null;
+}
+
+// ═══════ HISTORY ═══════
+let histData=JSON.parse(localStorage.getItem('oes_hist')||'[]');
+function saveHist(){
+  const sf=window._sf;if(!sf)return;
+  const ra=window._ra||toRAPD(sf),bk=window._bk||toBKD(sf);
+  let inp='';
+  if(cMode==='single') inp=`${document.getElementById('sv').value} ${document.getElementById('su').value}`;
+  else if(cMode==='rapd') inp=`${document.getElementById('rr').value||0}R ${document.getElementById('ra').value||0}A ${document.getElementById('rd').value||0}D ${document.getElementById('rp').value||0}P`;
+  else inp=`${document.getElementById('bb').value||0}B ${document.getElementById('bk').value||0}K ${document.getElementById('bd').value||0}D`;
+  histData.unshift({id:Date.now(),inp,rapd:`${ra.r}-${ra.a}-${ra.d}-${ra.p}`,bkd:`${bk.b}-${bk.k}-${bk.dh}`,sqft:fmt(sf,2),sqm:fmt(sf/10.76391,2),time:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})});
+  if(histData.length>60)histData.pop();
+  localStorage.setItem('oes_hist',JSON.stringify(histData));
+  showToast('Saved to history ✓');
+}
+function renderHist(){
+  const el=document.getElementById('hist-list');
+  if(!histData.length){el.innerHTML='<div class="empty">No saved calculations yet.<br>Convert an area and tap 💾 Save.</div>';return;}
+  el.innerHTML=histData.map(h=>`<div class="hist-item">
+    <div style="display:flex;justify-content:space-between"><div class="hist-in">Input: <b>${h.inp}</b></div><div style="font-size:10px;color:var(--txt3)">${h.time}</div></div>
+    <div class="hist-rapd">R-A-D-P: ${h.rapd}</div>
+    <div class="hist-bkd">B-K-D: ${h.bkd}</div>
+    <div style="font-size:10px;color:var(--txt3);margin-top:3px">${h.sqft} ft²  ·  ${h.sqm} m²</div>
+  </div>`).join('');
+}
+function clearHist(){if(!histData.length)return;if(!confirm('Clear all history?'))return;histData=[];localStorage.removeItem('oes_hist');renderHist();}
+
+// ═══════ AREA CALCULATOR ═══════
+let curShape='tri3';
+const SHAPES={
+  tri3:{name:'Triangle (Heron\'s Formula)',inputs:[{id:'s1',label:'Side a'},{id:'s2',label:'Side b'},{id:'s3',label:'Side c'}],note:'Enter all 3 side lengths. Heron\'s formula: A = √(s(s-a)(s-b)(s-c)) where s = (a+b+c)/2'},
+  tri2:{name:'Triangle (Base × Height)',inputs:[{id:'tb',label:'Base'},{id:'th',label:'Height'}],note:'Area = ½ × Base × Height'},
+  rect:{name:'Rectangle',inputs:[{id:'rl',label:'Length'},{id:'rw',label:'Width'}],note:'Area = Length × Width'},
+  square:{name:'Square',inputs:[{id:'ss',label:'Side'}],note:'Area = Side²'},
+  circle:{name:'Circle',inputs:[{id:'cr',label:'Radius'}],note:'Area = π × r²'},
+  trap:{name:'Trapezium',inputs:[{id:'ta',label:'Side a (parallel)'},{id:'tb2',label:'Side b (parallel)'},{id:'th2',label:'Height'}],note:'Area = ½ × (a + b) × Height'},
+  rhombus:{name:'Rhombus',inputs:[{id:'d1',label:'Diagonal 1'},{id:'d2',label:'Diagonal 2'}],note:'Area = (d₁ × d₂) / 2'},
+  ellipse:{name:'Ellipse',inputs:[{id:'ea',label:'Semi-axis a'},{id:'eb',label:'Semi-axis b'}],note:'Area = π × a × b'},
+  poly:{name:'Regular Polygon',inputs:[{id:'pn',label:'No. of sides',type:'number',min:3,step:1},{id:'ps',label:'Side length'}],note:'Area = (n × s²) / (4 × tan(π/n))'},
+};
+
+function setShape(s){
+  curShape=s;
+  document.querySelectorAll('.shape-card').forEach(c=>c.classList.remove('active'));
+  document.getElementById('sh-'+s).classList.add('active');
+  buildShapeInputs(s);
+  document.getElementById('shape-results').innerHTML='';
+}
+
+function buildShapeInputs(s){
+  const sh=SHAPES[s];
+  let h=`<div class="card-title">${sh.name}</div>`;
+  sh.inputs.forEach(inp=>{
+    h+=`<div class="field"><label>${inp.label}</label><input class="inp" type="number" id="${inp.id}" placeholder="0" min="0" step="any"></div>`;
+  });
+  h+=`<div class="info-box">${sh.note}</div>`;
+  document.getElementById('shape-inputs').innerHTML=h;
+}
+
+function getV(id){return parseFloat(document.getElementById(id)?.value)||0;}
+
+function calcShape(){
+  const u=document.getElementById('shape-unit').value;
+  const toSF=SHAPE_UNIT_TO_SQFT[u];
+  let area=0,valid=true,detail='';
+
+  if(curShape==='tri3'){
+    const a=getV('s1'),b=getV('s2'),c=getV('s3');
+    if(a<=0||b<=0||c<=0||a+b<=c||a+c<=b||b+c<=a){showToast('Invalid triangle sides');return;}
+    const s=(a+b+c)/2;
+    area=Math.sqrt(s*(s-a)*(s-b)*(s-c));
+    detail=`s = (${a}+${b}+${c})/2 = ${fmt(s,3)}\nA = √(${fmt(s,3)}×${fmt(s-a,3)}×${fmt(s-b,3)}×${fmt(s-c,3)})`;
+  } else if(curShape==='tri2'){
+    const b=getV('tb'),h=getV('th');if(b<=0||h<=0){showToast('Enter base and height');return;}
+    area=0.5*b*h;detail=`A = ½ × ${b} × ${h}`;
+  } else if(curShape==='rect'){
+    const l=getV('rl'),w=getV('rw');if(l<=0||w<=0){showToast('Enter length and width');return;}
+    area=l*w;detail=`A = ${l} × ${w}`;
+  } else if(curShape==='square'){
+    const s=getV('ss');if(s<=0){showToast('Enter side length');return;}
+    area=s*s;detail=`A = ${s}²`;
+  } else if(curShape==='circle'){
+    const r=getV('cr');if(r<=0){showToast('Enter radius');return;}
+    area=Math.PI*r*r;detail=`A = π × ${r}²`;
+  } else if(curShape==='trap'){
+    const a=getV('ta'),b=getV('tb2'),h=getV('th2');if(a<=0||b<=0||h<=0){showToast('Enter all values');return;}
+    area=0.5*(a+b)*h;detail=`A = ½ × (${a}+${b}) × ${h}`;
+  } else if(curShape==='rhombus'){
+    const d1=getV('d1'),d2=getV('d2');if(d1<=0||d2<=0){showToast('Enter both diagonals');return;}
+    area=(d1*d2)/2;detail=`A = (${d1} × ${d2}) / 2`;
+  } else if(curShape==='ellipse'){
+    const a=getV('ea'),b=getV('eb');if(a<=0||b<=0){showToast('Enter both axes');return;}
+    area=Math.PI*a*b;detail=`A = π × ${a} × ${b}`;
+  } else if(curShape==='poly'){
+    const n=getV('pn'),s=getV('ps');if(n<3||s<=0){showToast('Enter sides ≥3 and side length');return;}
+    area=(n*s*s)/(4*Math.tan(Math.PI/n));detail=`A = (${n} × ${s}²) / (4×tan(π/${n}))`;
+  }
+
+  const sf=area*toSF;
+  if(sf<=0||isNaN(sf)){showToast('Calculation error');return;}
+
+  // Show result
+  const ra=toRAPD(sf),bk=toBKD(sf);
+  window._sf=sf;window._ra=ra;window._bk=bk;
+  window._sfFromShape=true;
+
+  let h=`<div class="card" style="border-color:var(--acc);background:var(--acc3);margin-bottom:10px">
+    <div style="font-size:11px;color:var(--txt3);margin-bottom:4px">Calculated Area (${u}²)</div>
+    <div style="font-size:22px;font-weight:600;color:var(--acc)">${fmt(area,4)} ${u}²</div>
+    <div style="font-size:11px;color:var(--txt3);margin-top:4px;font-style:italic">${detail}</div>
+  </div>`;
+  h+=`<div class="rgroup-title">🏔 Hilly System</div>`;
+  h+=ri(true,false,'R-A-D-P <span class="badge">R-A-D-P</span>',`<b>${ra.r}</b><span style="color:var(--txt3);font-size:11px"> Ro </span><b>${ra.a}</b><span style="color:var(--txt3);font-size:11px"> Aa </span><b>${ra.d}</b><span style="color:var(--txt3);font-size:11px"> Da </span><b>${ra.p}</b><span style="color:var(--txt3);font-size:11px"> Pa</span>`);
+  h+=ri(false,false,'Ropani',fmt(sf/5476,5)+' Ro');
+  h+=`<div class="rgroup-title">🌾 Terai System</div>`;
+  h+=ri(false,true,'B-K-D <span class="badge blue">B-K-D</span>',`<b>${bk.b}</b><span style="color:var(--txt3);font-size:11px"> Bi </span><b>${bk.k}</b><span style="color:var(--txt3);font-size:11px"> Ka </span><b>${bk.dh}</b><span style="color:var(--txt3);font-size:11px"> Dh</span>`);
+  h+=`<div class="rgroup-title">🌍 International</div>`;
+  h+=ri(false,false,'Sq. Feet',fmt(sf,2)+' ft²');
+  h+=ri(false,false,'Sq. Meter',fmt(sf/10.76391,2)+' m²');
+  h+=ri(false,false,'Acre',fmt(sf/43560,6)+' acres');
+  h+=ri(false,false,'Hectare',fmt(sf/107639.1,6)+' ha');
+  h+=`<div class="btn-row"><button class="btn btn-g" onclick="saveShapeToHist('${SHAPES[curShape].name}','${fmt(area,4)} ${u}²')">💾 Save to History</button></div>`;
+  document.getElementById('shape-results').innerHTML=h;
+}
+
+function saveShapeToHist(shape,area){
+  const sf=window._sf;if(!sf)return;
+  const ra=toRAPD(sf),bk=toBKD(sf);
+  histData.unshift({id:Date.now(),inp:`${shape}: ${area}`,rapd:`${ra.r}-${ra.a}-${ra.d}-${ra.p}`,bkd:`${bk.b}-${bk.k}-${bk.dh}`,sqft:fmt(sf,2),sqm:fmt(sf/10.76391,2),time:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})});
+  if(histData.length>60)histData.pop();
+  localStorage.setItem('oes_hist',JSON.stringify(histData));
+  showToast('Saved to history ✓');
+}
+
+function clearShape(){
+  document.querySelectorAll('#shape-inputs input').forEach(e=>e.value='');
+  document.getElementById('shape-results').innerHTML='';
+}
+
+// Init shape
+setShape('tri3');
+
+// ═══════ LENGTH ═══════
+function convLen(){
+  const v=parseFloat(document.getElementById('lv').value),u=document.getElementById('lu').value;
+  const out=document.getElementById('len-results');
+  if(isNaN(v)||v<0){out.innerHTML='';return;}
+  const m=v*LM[u];
+  const gs=[
+    {t:'🏔 Nepali Units',items:[['Haath (हात)',fmt(m/.4572,4)+' haath'],['Bitta (बित्ता)',fmt(m/.2286,4)+' bitta'],['Dhanusha (धनुषा)',fmt(m/1.8288,4)+' dhanusha'],['Kos (कोस)',fmt(m/3218.688,6)+' kos']]},
+    {t:'📐 Imperial Units',items:[['Inch',fmt(m/.0254,3)+' in'],['Foot',fmt(m/.3048,3)+' ft'],['Yard',fmt(m/.9144,3)+' yd'],['Chain',fmt(m/20.1168,4)+' ch'],['Mile',fmt(m/1609.344,6)+' mi']]},
+    {t:'🌍 Metric Units',items:[['Millimeter',fmt(m*1000,2)+' mm'],['Centimeter',fmt(m*100,2)+' cm'],['Meter',fmt(m,4)+' m'],['Kilometer',fmt(m/1000,6)+' km']]},
+  ];
+  let h='';
+  gs.forEach(g=>{
+    h+=`<div class="rgroup-title">${g.t}</div>`;
+    g.items.forEach(([l,v2])=>h+=`<div class="ri" onclick="cpTxt('${v2}')"><div class="rl">${l}</div><div class="rv">${v2}</div></div>`);
+  });
+  out.innerHTML=h;
+}
+function clrLen(){document.getElementById('lv').value='';document.getElementById('len-results').innerHTML='';}
+
+// ═══════ CALCULATOR ═══════
+let cExpr='',cPrevResult=false,calcMode='sci';
+
+function setCalcMode(m){
+  calcMode=m;
+  document.getElementById('cm-sci').classList.toggle('active',m==='sci');
+  document.getElementById('cm-simple').classList.toggle('active',m==='simple');
+  document.getElementById('calc-sci-btns').style.display=m==='sci'?'grid':'none';
+  document.getElementById('calc-simple-btns').style.display=m==='simple'?'grid':'none';
+  cAC();
+}
+
+function ci(v){
+  if(cPrevResult&&/[\d(π e]/.test(v[0])) cExpr='';
+  cPrevResult=false;
+  cExpr+=v;
+  document.getElementById('c-val').textContent=cExpr||'0';
+  document.getElementById('c-expr').textContent='';
+}
+
+function cAC(){cExpr='';cPrevResult=false;document.getElementById('c-val').textContent='0';document.getElementById('c-expr').textContent='';}
+function cDel(){cExpr=cExpr.slice(0,-1);document.getElementById('c-val').textContent=cExpr||'0';}
+
+function sqrtCurrent(){
+  try{
+    const v=safeEval(cExpr||'0');
+    cExpr=String(v*v);
+    document.getElementById('c-val').textContent=fmt(v*v,8);
+    document.getElementById('c-expr').textContent=`(${fmt(v,6)})²`;
+    cPrevResult=true;
+  }catch(e){document.getElementById('c-val').textContent='Error';}
+}
+
+function safeEval(expr){
+  let e=expr
+    .replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-')
+    .replace(/π/g,'Math.PI').replace(/\be\b/g,'Math.E')
+    .replace(/sin\(/g,'Math.sin(Math.PI/180*').replace(/cos\(/g,'Math.cos(Math.PI/180*').replace(/tan\(/g,'Math.tan(Math.PI/180*')
+    .replace(/log\(/g,'Math.log10(').replace(/ln\(/g,'Math.log(')
+    .replace(/√\(/g,'Math.sqrt(').replace(/\^/g,'**');
+  // Close unclosed parens
+  let opens=(e.match(/\(/g)||[]).length,closes=(e.match(/\)/g)||[]).length;
+  while(opens>closes){e+=')';closes++;}
+  return Function('"use strict";return('+e+')')();
+}
+
+function cEval(){
+  if(!cExpr)return;
+  try{
+    const result=safeEval(cExpr);
+    const r=isFinite(result)?parseFloat(result.toFixed(10)):result;
+    document.getElementById('c-expr').textContent=cExpr+' =';
+    document.getElementById('c-val').textContent=r.toLocaleString('en-IN',{maximumFractionDigits:8});
+    cExpr=String(r);
+    cPrevResult=true;
+  }catch(e){
+    document.getElementById('c-val').textContent='Error';
+    document.getElementById('c-expr').textContent=cExpr;
+    cExpr='';
+  }
+}
+
+// ═══════ FIELD SURVEY ═══════
+let fieldPieces=[];
+let fieldShape='tri3';
+const FIELD_SHAPES=['tri3','tri2','rect','trap'];
+
+function setFieldShape(s){
+  fieldShape=s;
+  FIELD_SHAPES.forEach(x=>{
+    document.getElementById('fp-'+x).classList.toggle('active',x===s);
+    document.getElementById('fp-inp-'+x).style.display=x===s?'block':'none';
+  });
+}
+
+function clearFieldInputs(){
+  ['f-s1','f-s2','f-s3','f-tb','f-th','f-rl','f-rw','f-ta','f-tb2','f-th2','f-label'].forEach(id=>{
+    const e=document.getElementById(id);if(e)e.value='';
+  });
+}
+
+function getFieldV(id){return parseFloat(document.getElementById(id)?.value)||0;}
+
+function calcFieldArea(){
+  const u=document.getElementById('field-unit').value;
+  const toSF=SHAPE_UNIT_TO_SQFT[u];
+  let area=0,label='',detail='';
+  const lbl=document.getElementById('f-label').value.trim();
+
+  if(fieldShape==='tri3'){
+    const a=getFieldV('f-s1'),b=getFieldV('f-s2'),c=getFieldV('f-s3');
+    if(a<=0||b<=0||c<=0||a+b<=c||a+c<=b||b+c<=a){showToast('Invalid triangle — check sides');return null;}
+    const s=(a+b+c)/2;
+    area=Math.sqrt(s*(s-a)*(s-b)*(s-c));
+    detail=`▲ ${a}, ${b}, ${c} ${u} (Heron)`;
+    label=lbl||(fieldPieces.filter(p=>p.shape==='tri3').length+1>1?`T${fieldPieces.filter(p=>p.shape==='tri3').length+1}`:`T${fieldPieces.length+1}`);
+  } else if(fieldShape==='tri2'){
+    const b=getFieldV('f-tb'),h=getFieldV('f-th');
+    if(b<=0||h<=0){showToast('Enter base and height');return null;}
+    area=0.5*b*h;detail=`▲ base ${b}, h ${h} ${u}`;
+    label=lbl||`T${fieldPieces.length+1}`;
+  } else if(fieldShape==='rect'){
+    const l=getFieldV('f-rl'),w=getFieldV('f-rw');
+    if(l<=0||w<=0){showToast('Enter length and width');return null;}
+    area=l*w;detail=`▭ ${l}×${w} ${u}`;
+    label=lbl||`R${fieldPieces.length+1}`;
+  } else if(fieldShape==='trap'){
+    const a=getFieldV('f-ta'),b=getFieldV('f-tb2'),h=getFieldV('f-th2');
+    if(a<=0||b<=0||h<=0){showToast('Enter all trapezium values');return null;}
+    area=0.5*(a+b)*h;detail=`⬠ a${a}, b${b}, h${h} ${u}`;
+    label=lbl||`Tr${fieldPieces.length+1}`;
+  }
+  return{area,sqft:area*toSF,label,detail,shape:fieldShape,unit:u};
+}
+
+function addFieldPiece(){
+  const piece=calcFieldArea();
+  if(!piece)return;
+  fieldPieces.push({...piece,id:Date.now()});
+  clearFieldInputs();
+  renderFieldPieces();
+  renderFieldTotal();
+  showToast(`✓ ${piece.label} added (${fmt(piece.area,3)} ${piece.unit}²)`);
+}
+
+function removeFieldPiece(id){
+  fieldPieces=fieldPieces.filter(p=>p.id!==id);
+  renderFieldPieces();
+  renderFieldTotal();
+}
+
+function renderFieldPieces(){
+  const wrap=document.getElementById('field-pieces-wrap');
+  const list=document.getElementById('field-pieces-list');
+  const count=document.getElementById('field-count');
+  if(!fieldPieces.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  count.textContent=`(${fieldPieces.length})`;
+  const u=document.getElementById('field-unit').value;
+  list.innerHTML=fieldPieces.map((p,i)=>{
+    const pct=fieldPieces.length>1?(p.sqft/fieldPieces.reduce((s,x)=>s+x.sqft,0)*100).toFixed(1):'100';
+    return`<div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rs);padding:9px 11px;margin-bottom:5px;display:flex;align-items:center;gap:8px">
+      <div style="background:var(--acc);color:#0f1117;border-radius:6px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:var(--txt)">${p.label}</div>
+        <div style="font-size:11px;color:var(--txt3)">${p.detail}</div>
+        <div style="font-size:11px;color:var(--txt2);margin-top:1px">${fmt(p.area,4)} ${p.unit}² = ${fmt(p.sqft,2)} ft² <span style="color:var(--txt3)">(${pct}%)</span></div>
+      </div>
+      <button onclick="removeFieldPiece(${p.id})" style="background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:0 4px;line-height:1">×</button>
+    </div>`;
+  }).join('');
+}
+
+function renderFieldTotal(){
+  const wrap=document.getElementById('field-total-wrap');
+  if(!fieldPieces.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  const totalSF=fieldPieces.reduce((s,p)=>s+p.sqft,0);
+  const u=document.getElementById('field-unit').value;
+  const totalRaw=totalSF/SHAPE_UNIT_TO_SQFT[u];
+  const ra=toRAPD(totalSF),bk=toBKD(totalSF);
+  window._fieldSF=totalSF;
+  document.getElementById('field-total-raw').textContent=`${fmt(totalRaw,4)} ${u}²`;
+  document.getElementById('field-total-sqft').textContent=`${fieldPieces.length} piece${fieldPieces.length>1?'s':''} · ${fmt(totalSF,2)} sq.ft total`;
+  let h='';
+  h+=`<div class="rgroup-title">🏔 Hilly System</div>`;
+  h+=ri(true,false,'R – A – D – P <span class="badge">R-A-D-P</span>',`<b>${ra.r}</b><span style="color:var(--txt3);font-size:11px"> Ro </span><b>${ra.a}</b><span style="color:var(--txt3);font-size:11px"> Aa </span><b>${ra.d}</b><span style="color:var(--txt3);font-size:11px"> Da </span><b>${ra.p}</b><span style="color:var(--txt3);font-size:11px"> Pa</span>`);
+  h+=ri(false,false,'Ropani',fmt(totalSF/5476,5)+' Ro');
+  h+=ri(false,false,'Aana',fmt(totalSF/342.25,4)+' Aa');
+  h+=ri(false,false,'Dam',fmt(totalSF/85.5625,4)+' Da');
+  h+=`<div class="rgroup-title">🌾 Terai System</div>`;
+  h+=ri(false,true,'B – K – D <span class="badge blue">B-K-D</span>',`<b>${bk.b}</b><span style="color:var(--txt3);font-size:11px"> Bi </span><b>${bk.k}</b><span style="color:var(--txt3);font-size:11px"> Ka </span><b>${bk.dh}</b><span style="color:var(--txt3);font-size:11px"> Dh</span>`);
+  h+=ri(false,false,'Bigha',fmt(totalSF/72900,5)+' Bi');
+  h+=ri(false,false,'Kattha',fmt(totalSF/3645,4)+' Ka');
+  h+=ri(false,false,'Dhur',fmt(totalSF/182.25,3)+' Dh');
+  h+=`<div class="rgroup-title">🌍 International</div>`;
+  h+=ri(false,false,'Sq. Feet',fmt(totalSF,2)+' ft²');
+  h+=ri(false,false,'Sq. Meter',fmt(totalSF/10.76391,2)+' m²');
+  h+=ri(false,false,'Acre',fmt(totalSF/43560,6)+' ac');
+  h+=ri(false,false,'Hectare',fmt(totalSF/107639.1,6)+' ha');
+  document.getElementById('field-total-results').innerHTML=h;
+}
+
+function clearAllPieces(){
+  if(!fieldPieces.length)return;
+  if(!confirm(`Clear all ${fieldPieces.length} pieces?`))return;
+  fieldPieces=[];
+  renderFieldPieces();
+  renderFieldTotal();
+}
+
+function saveFieldToHist(){
+  const sf=window._fieldSF;if(!sf)return;
+  const ra=toRAPD(sf),bk=toBKD(sf);
+  const desc=`Field Survey (${fieldPieces.length} pieces): ${fieldPieces.map(p=>p.label).join(', ')}`;
+  histData.unshift({id:Date.now(),inp:desc,rapd:`${ra.r}-${ra.a}-${ra.d}-${ra.p}`,bkd:`${bk.b}-${bk.k}-${bk.dh}`,sqft:fmt(sf,2),sqm:fmt(sf/10.76391,2),time:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})});
+  if(histData.length>60)histData.pop();
+  localStorage.setItem('oes_hist',JSON.stringify(histData));
+  showToast('Survey saved to history ✓');
+}
+
+// ═══════ TOAST ═══════
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+</script>
+</body>
+</html>
