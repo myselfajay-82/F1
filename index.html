@@ -155,7 +155,7 @@ select.inp option{background:var(--bg2)}
   <div class="card-title" style="margin-bottom:8px;padding-left:2px">Input Mode</div>
   <div class="pills">
     <span class="pill active" id="pm-single" onclick="setMode('single')">Single Unit</span>
-    <span class="pill" id="pm-rapd" onclick="setMode('rapd')">R – A – D – P</span>
+    <span class="pill" id="pm-rapd" onclick="setMode('rapd')">R – A – P – D</span>
     <span class="pill" id="pm-bkd" onclick="setMode('bkd')">B – K – D</span>
   </div>
 
@@ -186,14 +186,14 @@ select.inp option{background:var(--bg2)}
   </div>
 
   <div id="inp-rapd" class="card" style="display:none">
-    <div class="card-title">Ropani – Aana – Dam – Paisa</div>
+    <div class="card-title">Ropani – Aana – Paisa – Dam</div>
     <div class="grid4">
       <div class="mini-f"><label>ROPANI</label><input class="inp" type="number" id="rr" min="0" step="1" placeholder="0" oninput="autoConv()"></div>
       <div class="mini-f"><label>AANA</label><input class="inp" type="number" id="ra" min="0" max="15" step="1" placeholder="0" oninput="autoConv()"></div>
-      <div class="mini-f"><label>DAM</label><input class="inp" type="number" id="rd" min="0" max="3" step="1" placeholder="0" oninput="autoConv()"></div>
-      <div class="mini-f"><label>PAISA</label><input class="inp" type="number" id="rp" min="0" max="3" step="1" placeholder="0" oninput="autoConv()"></div>
+      <div class="mini-f"><label>PAISA</label><input class="inp" type="number" id="rd" min="0" max="3" step="1" placeholder="0" oninput="autoConv()"></div>
+      <div class="mini-f"><label>DAM</label><input class="inp" type="number" id="rp" min="0" max="3" step="1" placeholder="0" oninput="autoConv()"></div>
     </div>
-    <div class="info-box">1 Ropani = 16 Aana = 64 Dam = 256 Paisa = 5,476 sq.ft</div>
+    <div class="info-box">1 Ropani = 16 Aana = 64 Paisa = 256 Dam = 5,476 sq.ft</div>
   </div>
 
   <div id="inp-bkd" class="card" style="display:none">
@@ -506,7 +506,7 @@ select.inp option{background:var(--bg2)}
 
 <script>
 // ═══════ CONSTANTS ═══════
-const SF={ropani:5476,aana:342.25,dam:85.5625,paisa:21.390625,bigha:72900,kattha:3645,dhur:182.25,sqft:1,sqm:10.76391,acre:43560,hectare:107639.1,sqkm:10763910.4};
+const SF={ropani:5476,aana:342.25,paisa:85.5625,dam:21.390625,bigha:72900,kattha:3645,dhur:182.25,sqft:1,sqm:10.76391,acre:43560,hectare:107639.1,sqkm:10763910.4};
 const LM={haath:.4572,bitta:.2286,dhanusha:1.8288,kos:3218.688,inch:.0254,foot:.3048,yard:.9144,chain:20.1168,mile:1609.344,mm:.001,cm:.01,meter:1,km:1000};
 const SHAPE_UNIT_TO_SQFT={foot:1,meter:10.76391,inch:1/144,yard:9,cm:10.76391/10000};
 
@@ -550,7 +550,7 @@ function getSF(){
   if(cMode==='rapd'){
     const r=+document.getElementById('rr').value||0,a=+document.getElementById('ra').value||0,d=+document.getElementById('rd').value||0,p=+document.getElementById('rp').value||0;
     if(r+a+d+p===0)return null;
-    return r*5476+a*342.25+d*85.5625+p*21.390625;
+    return r*5476+a*342.25+p*85.5625+d*21.390625;
   }
   if(cMode==='bkd'){
     const b=+document.getElementById('bb').value||0,k=+document.getElementById('bk').value||0,d=+document.getElementById('bd').value||0;
@@ -563,10 +563,10 @@ function getSF(){
 function toRAPD(sf){
   let r=Math.floor(sf/5476),rem=sf%5476;
   let a=Math.floor(rem/342.25);rem=rem%342.25;
-  let d=Math.floor(rem/85.5625);rem=rem%85.5625;
-  let p=parseFloat((rem/21.390625).toFixed(2));
-  if(p>=4){d++;p=0;}if(d>=4){a++;d=0;}if(a>=16){r++;a=0;}
-  return{r,a,d,p};
+  let p=Math.floor(rem/85.5625);rem=rem%85.5625;
+  let d=parseFloat((rem/21.390625).toFixed(2));
+  if(d>=4){p++;d=0;}if(p>=4){a++;p=0;}if(a>=16){r++;a=0;}
+  return{r,a,p,d};
 }
 function toBKD(sf){
   let b=Math.floor(sf/72900),rem=sf%72900;
@@ -581,11 +581,11 @@ function renderResults(sf){
   window._sf=sf;window._ra=ra;window._bk=bk;
   let h='<div>';
   h+=`<div class="rgroup-title">🏔 Hilly System (Ropani)</div>`;
-  h+=ri(true,false,'R – A – D – P <span class="badge">R-A-D-P</span>',`<b>${ra.r}</b><span style="color:var(--txt3);font-size:11px"> Ro </span><b>${ra.a}</b><span style="color:var(--txt3);font-size:11px"> Aa </span><b>${ra.d}</b><span style="color:var(--txt3);font-size:11px"> Da </span><b>${ra.p}</b><span style="color:var(--txt3);font-size:11px"> Pa</span>`,`${ra.r}Ro-${ra.a}Aa-${ra.d}Da-${ra.p}Pa`);
+  h+=ri(true,false,'R – A – P – D <span class="badge">R-A-P-D</span>',`<b>${ra.r}</b><span style="color:var(--txt3);font-size:11px"> Ro </span><b>${ra.a}</b><span style="color:var(--txt3);font-size:11px"> Aa </span><b>${ra.p}</b><span style="color:var(--txt3);font-size:11px"> Pa </span><b>${ra.d}</b><span style="color:var(--txt3);font-size:11px"> Da</span>`,`${ra.r}Ro-${ra.a}Aa-${ra.p}Pa-${ra.d}Da`);
   h+=ri(false,false,'Ropani',fmt(sf/5476,5)+' Ro',fmt(sf/5476,5)+' Ropani');
   h+=ri(false,false,'Aana',fmt(sf/342.25,4)+' Aa',fmt(sf/342.25,4)+' Aana');
-  h+=ri(false,false,'Dam',fmt(sf/85.5625,4)+' Da',fmt(sf/85.5625,4)+' Dam');
-  h+=ri(false,false,'Paisa',fmt(sf/21.390625,3)+' Pa',fmt(sf/21.390625,3)+' Paisa');
+  h+=ri(false,false,'Paisa',fmt(sf/85.5625,4)+' Pa',fmt(sf/85.5625,4)+' Paisa');
+  h+=ri(false,false,'Dam',fmt(sf/21.390625,3)+' Da',fmt(sf/21.390625,3)+' Dam');
   h+=`<div class="rgroup-title">🌾 Terai System (Bigha)</div>`;
   h+=ri(false,true,'B – K – D <span class="badge blue">B-K-D</span>',`<b>${bk.b}</b><span style="color:var(--txt3);font-size:11px"> Bi </span><b>${bk.k}</b><span style="color:var(--txt3);font-size:11px"> Ka </span><b>${bk.dh}</b><span style="color:var(--txt3);font-size:11px"> Dh</span>`,`${bk.b}Bi-${bk.k}Ka-${bk.dh}Dh`);
   h+=ri(false,false,'Bigha',fmt(sf/72900,5)+' Bi',fmt(sf/72900,5)+' Bigha');
@@ -623,9 +623,9 @@ function saveHist(){
   const ra=window._ra||toRAPD(sf),bk=window._bk||toBKD(sf);
   let inp='';
   if(cMode==='single') inp=`${document.getElementById('sv').value} ${document.getElementById('su').value}`;
-  else if(cMode==='rapd') inp=`${document.getElementById('rr').value||0}R ${document.getElementById('ra').value||0}A ${document.getElementById('rd').value||0}D ${document.getElementById('rp').value||0}P`;
+  else if(cMode==='rapd') inp=`${document.getElementById('rr').value||0}R ${document.getElementById('ra').value||0}A ${document.getElementById('rp').value||0}P ${document.getElementById('rd').value||0}D`;
   else inp=`${document.getElementById('bb').value||0}B ${document.getElementById('bk').value||0}K ${document.getElementById('bd').value||0}D`;
-  histData.unshift({id:Date.now(),inp,rapd:`${ra.r}-${ra.a}-${ra.d}-${ra.p}`,bkd:`${bk.b}-${bk.k}-${bk.dh}`,sqft:fmt(sf,2),sqm:fmt(sf/10.76391,2),time:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})});
+  histData.unshift({id:Date.now(),inp,rapd:`${ra.r}-${ra.a}-${ra.p}-${ra.d}`,bkd:`${bk.b}-${bk.k}-${bk.dh}`,sqft:fmt(sf,2),sqm:fmt(sf/10.76391,2),time:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})});
   if(histData.length>60)histData.pop();
   localStorage.setItem('oes_hist',JSON.stringify(histData));
   showToast('Saved to history ✓');
@@ -635,7 +635,7 @@ function renderHist(){
   if(!histData.length){el.innerHTML='<div class="empty">No saved calculations yet.<br>Convert an area and tap 💾 Save.</div>';return;}
   el.innerHTML=histData.map(h=>`<div class="hist-item">
     <div style="display:flex;justify-content:space-between"><div class="hist-in">Input: <b>${h.inp}</b></div><div style="font-size:10px;color:var(--txt3)">${h.time}</div></div>
-    <div class="hist-rapd">R-A-D-P: ${h.rapd}</div>
+    <div class="hist-rapd">R-A-P-D: ${h.rapd}</div>
     <div class="hist-bkd">B-K-D: ${h.bkd}</div>
     <div style="font-size:10px;color:var(--txt3);margin-top:3px">${h.sqft} ft²  ·  ${h.sqm} m²</div>
   </div>`).join('');
@@ -727,8 +727,11 @@ function calcShape(){
     <div style="font-size:11px;color:var(--txt3);margin-top:4px;font-style:italic">${detail}</div>
   </div>`;
   h+=`<div class="rgroup-title">🏔 Hilly System</div>`;
-  h+=ri(true,false,'R-A-D-P <span class="badge">R-A-D-P</span>',`<b>${ra.r}</b><span style="color:var(--txt3);font-size:11px"> Ro </span><b>${ra.a}</b><span style="color:var(--txt3);font-size:11px"> Aa </span><b>${ra.d}</b><span style="color:var(--txt3);font-size:11px"> Da </span><b>${ra.p}</b><span style="color:var(--txt3);font-size:11px"> Pa</span>`);
+  h+=ri(true,false,'R-A-P-D <span class="badge">R-A-P-D</span>',`<b>${ra.r}</b><span style="color:var(--txt3);font-size:11px"> Ro </span><b>${ra.a}</b><span style="color:var(--txt3);font-size:11px"> Aa </span><b>${ra.p}</b><span style="color:var(--txt3);font-size:11px"> Pa </span><b>${ra.d}</b><span style="color:var(--txt3);font-size:11px"> Da</span>`);
   h+=ri(false,false,'Ropani',fmt(sf/5476,5)+' Ro');
+  h+=ri(false,false,'Aana',fmt(sf/342.25,4)+' Aa');
+  h+=ri(false,false,'Paisa',fmt(sf/85.5625,4)+' Pa');
+  h+=ri(false,false,'Dam',fmt(sf/21.390625,3)+' Da');
   h+=`<div class="rgroup-title">🌾 Terai System</div>`;
   h+=ri(false,true,'B-K-D <span class="badge blue">B-K-D</span>',`<b>${bk.b}</b><span style="color:var(--txt3);font-size:11px"> Bi </span><b>${bk.k}</b><span style="color:var(--txt3);font-size:11px"> Ka </span><b>${bk.dh}</b><span style="color:var(--txt3);font-size:11px"> Dh</span>`);
   h+=`<div class="rgroup-title">🌍 International</div>`;
@@ -743,7 +746,7 @@ function calcShape(){
 function saveShapeToHist(shape,area){
   const sf=window._sf;if(!sf)return;
   const ra=toRAPD(sf),bk=toBKD(sf);
-  histData.unshift({id:Date.now(),inp:`${shape}: ${area}`,rapd:`${ra.r}-${ra.a}-${ra.d}-${ra.p}`,bkd:`${bk.b}-${bk.k}-${bk.dh}`,sqft:fmt(sf,2),sqm:fmt(sf/10.76391,2),time:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})});
+  histData.unshift({id:Date.now(),inp:`${shape}: ${area}`,rapd:`${ra.r}-${ra.a}-${ra.p}-${ra.d}`,bkd:`${bk.b}-${bk.k}-${bk.dh}`,sqft:fmt(sf,2),sqm:fmt(sf/10.76391,2),time:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})});
   if(histData.length>60)histData.pop();
   localStorage.setItem('oes_hist',JSON.stringify(histData));
   showToast('Saved to history ✓');
@@ -943,10 +946,11 @@ function renderFieldTotal(){
   document.getElementById('field-total-sqft').textContent=`${fieldPieces.length} piece${fieldPieces.length>1?'s':''} · ${fmt(totalSF,2)} sq.ft total`;
   let h='';
   h+=`<div class="rgroup-title">🏔 Hilly System</div>`;
-  h+=ri(true,false,'R – A – D – P <span class="badge">R-A-D-P</span>',`<b>${ra.r}</b><span style="color:var(--txt3);font-size:11px"> Ro </span><b>${ra.a}</b><span style="color:var(--txt3);font-size:11px"> Aa </span><b>${ra.d}</b><span style="color:var(--txt3);font-size:11px"> Da </span><b>${ra.p}</b><span style="color:var(--txt3);font-size:11px"> Pa</span>`);
+  h+=ri(true,false,'R – A – P – D <span class="badge">R-A-P-D</span>',`<b>${ra.r}</b><span style="color:var(--txt3);font-size:11px"> Ro </span><b>${ra.a}</b><span style="color:var(--txt3);font-size:11px"> Aa </span><b>${ra.p}</b><span style="color:var(--txt3);font-size:11px"> Pa </span><b>${ra.d}</b><span style="color:var(--txt3);font-size:11px"> Da</span>`);
   h+=ri(false,false,'Ropani',fmt(totalSF/5476,5)+' Ro');
   h+=ri(false,false,'Aana',fmt(totalSF/342.25,4)+' Aa');
-  h+=ri(false,false,'Dam',fmt(totalSF/85.5625,4)+' Da');
+  h+=ri(false,false,'Paisa',fmt(totalSF/85.5625,4)+' Pa');
+  h+=ri(false,false,'Dam',fmt(totalSF/21.390625,3)+' Da');
   h+=`<div class="rgroup-title">🌾 Terai System</div>`;
   h+=ri(false,true,'B – K – D <span class="badge blue">B-K-D</span>',`<b>${bk.b}</b><span style="color:var(--txt3);font-size:11px"> Bi </span><b>${bk.k}</b><span style="color:var(--txt3);font-size:11px"> Ka </span><b>${bk.dh}</b><span style="color:var(--txt3);font-size:11px"> Dh</span>`);
   h+=ri(false,false,'Bigha',fmt(totalSF/72900,5)+' Bi');
@@ -972,7 +976,7 @@ function saveFieldToHist(){
   const sf=window._fieldSF;if(!sf)return;
   const ra=toRAPD(sf),bk=toBKD(sf);
   const desc=`Field Survey (${fieldPieces.length} pieces): ${fieldPieces.map(p=>p.label).join(', ')}`;
-  histData.unshift({id:Date.now(),inp:desc,rapd:`${ra.r}-${ra.a}-${ra.d}-${ra.p}`,bkd:`${bk.b}-${bk.k}-${bk.dh}`,sqft:fmt(sf,2),sqm:fmt(sf/10.76391,2),time:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})});
+  histData.unshift({id:Date.now(),inp:desc,rapd:`${ra.r}-${ra.a}-${ra.p}-${ra.d}`,bkd:`${bk.b}-${bk.k}-${bk.dh}`,sqft:fmt(sf,2),sqm:fmt(sf/10.76391,2),time:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})});
   if(histData.length>60)histData.pop();
   localStorage.setItem('oes_hist',JSON.stringify(histData));
   showToast('Survey saved to history ✓');
